@@ -1,4 +1,8 @@
 # BMC_RESmart
+
+Cloned from https://github.com/headrotor/BMC_RESmart, 
+see this repo for the original source.
+
 Decode data files from BMC Medical RESMart GII systems.
 
 Note: the operation of this code has been reverse-engineered from
