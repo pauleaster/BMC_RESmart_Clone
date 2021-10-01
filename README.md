@@ -3,6 +3,8 @@
 Cloned from https://github.com/headrotor/BMC_RESmart, 
 see this repo for the original source.
 
+I am using this to make a Rust port for my own use.
+
 Decode data files from BMC Medical RESMart GII systems.
 
 Note: the operation of this code has been reverse-engineered from
