@@ -104,11 +104,6 @@ optional arguments:
   -h, --help          show this help message and exit
   --list_dates, -l    Print dates found in stored data. Suppresses other
                       output
-  --f25_hz, -2        Print out all 25 Hz (flow) data. this will make output
-                      files 25x as big.
-  --f10_hz, -1        Print out all 10 Hz (pulse) data. this will make output
-                      files 10x as big.
-  --all_data, -a      Print out all 1Hz data fields known or unknown
   --time_ymd, -y      Print timestamp in Y, M, D, H, M, S format
   --time_seconds, -s  Print timestamp in seconds since beginning of month
   --dates, -d,       Select date range in YYYY-MM-DD format. Single date is one day, two dates are start and end of time range.
