@@ -27,10 +27,10 @@ class packet(object):
         # generate human-readable labels
         self.setup_labels()
 
-        if self.data[self.known_fields["spO2_pct"]] > 0:
-            self.has_pulse = True
-        else:
-            self.has_pulse = False
+        # if self.data[self.known_fields["spO2_pct"]] > 0:
+        #     self.has_pulse = True
+        # else:
+        self.has_pulse = False
         
 
     def setup_labels(self):
@@ -40,13 +40,6 @@ class packet(object):
         # default label is "?" for unknown data field
         self.data_fields = ["?" for i in range(self.dlen)]
         
-        # first 85 fields are 25 Hz and 10 Hz measurements of pressure/flow
-        for i in range(25):
-            self.data_fields[4 + i   ] = "resA".format(i)
-            self.data_fields[4 + i + 25] = "resB".format(i)
-            self.data_fields[4 + i + 50] = "resC".format(i)
-            if i < 10:
-                self.data_fields[4 + i + 75] = "pulse".format(i)
                 
         # some data fields are known, label them
         self.known_fields = {
@@ -54,8 +47,6 @@ class packet(object):
             "IPAP":2,
             "EPAP":3,
             "tidal_vol":99,
-            "spO2_pct":102,
-            "HR_BPM":103,
             "rep_rate":104}
         
         for key, val in self.known_fields.items():
@@ -93,6 +84,7 @@ class packet(object):
             outstr += "{}, ".format(key)
         return outstr
 
+
     def get_known_values_csv(self):
         # print only understood values
         outstr = ""
@@ -100,23 +92,6 @@ class packet(object):
             outstr += "{}, ".format(self.data[val])
         return outstr
 
-    def get_all_values_csv(self):
-        # print all data values whether we know what they are or not
-        outstr = ""
-        for i in range(1,3):
-            outstr += "{}, ".format(self.data[i])
-        for i in range(89,self.dlen):
-            outstr += "{}, ".format(self.data[i])
-        return outstr
-
-    def get_all_values_header_csv(self):
-        # print all data values whether we know what they are or not
-        outstr = ""
-        for i in range(1,3):
-            outstr += "{}, ".format(self.data_fields[i])
-        for i in range(89,self.dlen):
-            outstr += "{}, ".format(self.data_fields[i])
-        return outstr
 
     def fix_csv(self, csv_str):
         # remove trailing spaces & comma, add newline 
@@ -127,30 +102,22 @@ class packet(object):
 
     def get_time_ymd_header_csv(self):
         # return time string in year, month, day format
-        return ",".join(self.timestamp_fields)
+        return ",".join(self.timestamp_fields[:-1])
 
     def get_time_ymd_csv(self):
         # return time string in year, month, day format
         outstr = ""
-        for i in self.timestamp:
+        for i in self.timestamp[:-1]:
             outstr += "{:d}, ".format(i)
             
         return outstr
+
+    def get_time_seconds_header_csv(self):
+        return "seconds"
             
     def get_time_seconds(self):
         return self.second + 60*self.minute + 3600*(self.hour + 24*(self.ordinal))
-    def get_10hz_csv(self, i):
-        return "{}, ".format(self.data[4 + 75 + i])
 
-    def get_25hz_csv(self, i):
-        #These fields are arrays of 25 values/second, something to do with
-        # respiration. Last one is cleanest -- filtered?
-        outstr = "{:d}, {:d}, {:d}, ".format(self.data[4 + i],
-                                             self.data[4 + 25 + i],
-                                             self.data[4 + 50 + i])
-        return outstr
-
-   
 
 #### methods for a collection of packets
 def s2HMS(seconds):
@@ -214,17 +181,6 @@ parser.add_argument('--info','-i',
                     action='store_true',
                     help='Prints readable summary of data and dates to stdout.' )
 
-parser.add_argument('--f25_hz','-2',
-                    action='store_true',
-                    help='Print out all 25 Hz (flow) data. this will make output files 25x as big.' )
-
-parser.add_argument('--f10_hz','-1',
-                    action='store_true',
-                    help='Print out all 10 Hz (pulse) data. this will make output files 10x as big.' )
-
-parser.add_argument('--all_data','-a',
-                    action='store_true',
-                    help='Print out all 1Hz data fields known or unknown' )
 
 parser.add_argument('--time_ymd','-y',
                     action='store_true',
@@ -247,7 +203,8 @@ parser.add_argument('--dates', '-d',  nargs = '+',
                     default=[])
 
 parser.add_argument('--path', '-p', 
-                    help='Enter the path for the CPAP data files.')
+                    help='Enter the path for the CPAP data files.', 
+                    default=".")
 
 args = parser.parse_args()
 
@@ -279,7 +236,7 @@ if len(args.path) > 0:
         raise ValueError("Incorrect path supplied")
         exit()
     if not path_exists:
-        raise ValueError("Incorrect path supplied", path_exists)
+        raise ValueError("Incorrect path supplied")
         exit()
 
 
@@ -340,14 +297,26 @@ if end_date is None:
 #print(start_date)
 #print(end_date)
 
+first_header_row = True
+
 with open(args.output_file, 'w') as outf:
     # read data 
     
     day = -1
     for i, p in enumerate(packets):
+        if i == 0 and first_header_row:
+            first_header_row = False
+            outstr = ""
+            if args.time_seconds:
+                outstr += "{}, ".format(p.get_time_seconds_header_csv()) # change to header
+
+            if args.time_ymd:
+                outstr += p.get_time_ymd_header_csv() + ','
+
+            outstr += p.get_known_header_csv()
+            outf.write(p.fix_csv(outstr) + "\n")   
 
         if p.date >= start_date and p.date <= end_date:
-
 
             if p.ordinal != day and not args.quiet:
                 day = p.ordinal
@@ -361,26 +330,9 @@ with open(args.output_file, 'w') as outf:
             if args.time_ymd:
                 outstr += p.get_time_ymd_csv()
 
-            if args.all_data:
-                outstr += p.get_all_values_csv() 
-            else: 
-                outstr += p.get_known_values_csv()
-
-            if args.f10_hz:
-                for i in range(10):
-                    frac_sec = float(p.get_time_seconds()) + float(i)/10.
-                    tstr = "{:.2f}, ".format(frac_sec)
-                    tstr += p.get_10hz_csv(i)
-                    outf.write(p.fix_csv(outstr + tstr) + "\n")      
-
-            elif args.f25_hz:
-                for i in range(25):
-                    frac_sec = float(p.get_time_seconds()) + float(i)/25.
-                    tstr = "{:.2f}, ".format(frac_sec)
-                    tstr += p.get_25hz_csv(i)
-                    outf.write(p.fix_csv(outstr + tstr) + "\n")      
-            else:
-                outf.write(p.fix_csv(outstr) + "\n")            
+            outstr += p.get_known_values_csv()
+            csv_str = p.fix_csv(outstr) + "\n"
+            outf.write(csv_str)            
 
 
 
