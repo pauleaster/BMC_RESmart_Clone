@@ -111,6 +111,7 @@ optional arguments:
   --all_data, -a      Print out all 1Hz data fields known or unknown
   --time_ymd, -y      Print timestamp in Y, M, D, H, M, S format
   --time_seconds, -s  Print timestamp in seconds since beginning of month
+  --dates, -d,       Select date range in YYYY-MM-DD format. Single date is one day, two dates are start and end of time range.
   --quiet, -q         Do not print progress and info to stderr
 ~~~~
 

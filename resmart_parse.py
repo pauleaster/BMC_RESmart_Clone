@@ -1,3 +1,4 @@
+import os
 import struct
 import sys
 import glob
@@ -242,8 +243,11 @@ parser.add_argument('output_file', nargs = '?',
                     default="RESmart_data.csv")
 
 parser.add_argument('--dates', '-d',  nargs = '+', 
-                    help='select date range in YYYY-MM-DD format. Single date is one day, two dates are start and end of time range.',
+                    help='Select date range in YYYY-MM-DD format. Single date is one day, two dates are start and end of time range.',
                     default=[])
+
+parser.add_argument('--path', '-p', 
+                    help='Enter the path for the CPAP data files.')
 
 args = parser.parse_args()
 
@@ -265,10 +269,28 @@ if len(args.dates) > 1:
         raise ValueError("Incorrect -d date format, should be YYYY-MM-DD")
         exit()
 
+if len(args.path) > 0:
+    path = args.path
+    path_exists = False
+    try:
+        path_exists = os.path.isdir(path)
+
+    except ValueError:
+        raise ValueError("Incorrect path supplied")
+        exit()
+    if not path_exists:
+        raise ValueError("Incorrect path supplied", path_exists)
+        exit()
+
+
 
 # Should probably ensure these files all have the same root...
-filesNNN = glob.glob('*.[0-9][0-9][0-9]')
+filesNNN = glob.glob(os.path.join(path,'*.[0-9][0-9][0-9]'))
 filesNNN.sort()
+
+# print(path,'\n', filesNNN)
+
+
 
 packets = []
 thispacket = None
