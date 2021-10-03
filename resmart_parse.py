@@ -119,55 +119,11 @@ class packet(object):
         return self.second + 60*self.minute + 3600*(self.hour + 24*(self.ordinal))
 
 
-#### methods for a collection of packets
-def s2HMS(seconds):
-    # should refactor this with datetime
-    #return a string giving hours minutes seconds from seconds
-    hours = int(seconds/3600.)
-    minutes = int((seconds%3600)/60.)
-    return"{:02d}:{:02d}".format(hours,minutes)
 
-def get_day_info(packets):
-    # given a list of packets, return a symbolic string of contents
-    # one char per hour, '.' if no data, '+' if flow data, '0' if heartrate
-    # should refactor this by date
-    hstr = ""
-    pptr = 0
 
-    datestr = packets[0].datestr
-    hour = -1
-    # 24 chars, one for each hour, for graphical representation of data
-    hstr = ["." for i in range(24)]
-    infostr = ""
-    daysecs = 0
-    has_pulse = False
-    for p in packets:
 
-        daysecs += 1
-        if p.has_pulse:
-            has_pulse = True
 
-        if p.hour > hour:
-            hour = p.hour
-            if has_pulse:
-                hstr[hour] = 'O'
-                has_pulse = False
-            else: 
-                hstr[hour] = '+'
 
-        if p.datestr != datestr:
-            infostr += (datestr + " " + "".join(hstr) +  \
-                        " {}\n".format(s2HMS(daysecs)))
-            hstr = ["." for i in range(24)]
-            daysecs = 0
-            hour = -1
-            datestr = p.datestr
-
-    infostr += (datestr + " " + "".join(hstr) +  \
-                " {}\n".format(s2HMS(daysecs)))
-    return infostr
-
-######################## main program starts here
 
 if sys.version_info.major < 3:
     print("sorry, requires Python 3.")
@@ -176,11 +132,6 @@ if sys.version_info.major < 3:
 
 parser = argparse.ArgumentParser(
     description='Extract data from BMC RESmart raw data files')
-
-parser.add_argument('--info','-i',
-                    action='store_true',
-                    help='Prints readable summary of data and dates to stdout.' )
-
 
 parser.add_argument('--time_ymd','-y',
                     action='store_true',
@@ -278,8 +229,6 @@ if not args.quiet:
     print("{:d} packets found in {} files".format(len(packets), len(filesNNN)))
  
 
-if args.info:
-    print(get_day_info(packets))
 
 
 if start_date is None:
