@@ -4,6 +4,9 @@ import sys
 import glob
 import argparse
 import datetime
+import time
+
+start = time.time()
 
 
 class packet(object):
@@ -281,7 +284,9 @@ with open(args.output_file, 'w') as outf:
 
             outstr += p.get_known_values_csv()
             csv_str = p.fix_csv(outstr) + "\n"
-            outf.write(csv_str)            
+            outf.write(csv_str)
+end = time.time()
+print("Elapsed time = {:0.3f}".format(end - start))      
 
 
 
