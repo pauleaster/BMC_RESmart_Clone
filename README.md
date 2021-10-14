@@ -5,6 +5,14 @@ see this repo for the original source.
 
 I am using this to make a Rust port for my own use.
 
+This is my rust port: https://github.com/pauleaster/bmc_cpap
+
+## results:
+Both the python and rust code read the binary files ~123MB (on disk) and writes a csv file of ~27MB.
+The python code takes ~30 sec and the rust code takes ~1.5 sec.
+
+## The Following is the readme from the original repo
+
 Decode data files from BMC Medical RESMart GII systems.
 
 Note: the operation of this code has been reverse-engineered from
